@@ -1,5 +1,6 @@
 # This is the main binary. List your C files here.
 add_executable(signals
+    signaling.c
     test_signal.c
     )
 
