@@ -88,7 +88,6 @@ void test_noop(void)
     vSemaphoreDelete(response);
 }
 
-
 void test_out_of_order(void)
 {
     TaskHandle_t coop_thread;
