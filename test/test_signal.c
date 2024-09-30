@@ -5,9 +5,9 @@
 #include <unity.h>
 #include "signaling.h"
 
-#define TEST_TASK_PRIORITY      ( tskIDLE_PRIORITY + 1UL )
+#define TEST_TASK_PRIORITY (tskIDLE_PRIORITY + 1UL)
 #define TEST_TASK_STACK_SIZE configMINIMAL_STACK_SIZE
-#define TEST_RUNNER_PRIORITY      ( tskIDLE_PRIORITY + 2UL )
+#define TEST_RUNNER_PRIORITY (tskIDLE_PRIORITY + 2UL)
 #define TEST_RUNNER_STACK_SIZE configMINIMAL_STACK_SIZE
 
 void setUp(void) {}
@@ -24,7 +24,8 @@ struct task_args
 void calc_task(void *vargs)
 {
     struct task_args *args = (struct task_args *)vargs;
-    while(1) {
+    while (1)
+    {
         signal_handle_calculation(args->request,
                                   args->response,
                                   args->data);
@@ -35,19 +36,21 @@ void calc_task(void *vargs)
 void test_request(void)
 {
     TaskHandle_t coop_thread;
-    SemaphoreHandle_t request = xSemaphoreCreateCounting(1, 0); // Create request semaphore
+    SemaphoreHandle_t request = xSemaphoreCreateCounting(1, 0);  // Create request semaphore
     SemaphoreHandle_t response = xSemaphoreCreateCounting(1, 0); // Create response semaphore
 
-    struct signal_data data = {}; // Blank array of signal_data (2 int32_t, input and output)
+    struct signal_data data = {};                       // Blank array of signal_data (2 int32_t, input and output)
     struct task_args args = {request, response, &data}; // Sets up arguments for the thread
     xTaskCreate(calc_task, "test_request", TEST_TASK_STACK_SIZE,
                 (void *)&args, TEST_TASK_PRIORITY, &coop_thread); // Start the thread, pass in thread and arguments
-    for (int counter = 46; counter < 55; counter++) {
+    for (int counter = 46; counter < 55; counter++)
+    {
         data.input = counter;
         BaseType_t result = signal_request_calculate(request, response, &data); // Call function
-        TEST_ASSERT_EQUAL_INT(pdTRUE, result); // Check that function returned ok
-        TEST_ASSERT_EQUAL_INT(counter+5, data.output); // Output of functions is (input + 5)
-	}
+        TEST_ASSERT_EQUAL_INT(pdTRUE, result);                                  // Check that function returned ok
+        TEST_ASSERT_EQUAL_INT(counter + 5, data.output);                        // Output of functions is (input + 5)
+    }
+    printf("in test_request\n");
     /* Delete all threads and semaphores */
     vTaskDelete(coop_thread);
     vSemaphoreDelete(request);
@@ -109,9 +112,10 @@ void test_out_of_order(void)
     vSemaphoreDelete(response);
 }
 
-void runner_thread (__unused void *args)
+void runner_thread(__unused void *args)
 {
-    for (;;) {
+    for (;;)
+    {
         printf("Starting test run.\n");
         UNITY_BEGIN();
         RUN_TEST(test_noop);
@@ -123,7 +127,7 @@ void runner_thread (__unused void *args)
     }
 }
 
-int main (void)
+int main(void)
 {
     stdio_init_all();
     printf("Launching runner\n");
@@ -131,5 +135,5 @@ int main (void)
     xTaskCreate(runner_thread, "TestRunner",
                 TEST_RUNNER_STACK_SIZE, NULL, TEST_RUNNER_PRIORITY, NULL);
     vTaskStartScheduler();
-	return 0;
+    return 0;
 }
