@@ -35,19 +35,20 @@ void calc_task(void *vargs)
 void test_request(void)
 {
     TaskHandle_t coop_thread;
-    SemaphoreHandle_t request = xSemaphoreCreateCounting(1, 0);
-    SemaphoreHandle_t response = xSemaphoreCreateCounting(1, 0);
+    SemaphoreHandle_t request = xSemaphoreCreateCounting(1, 0); // Create request semaphore
+    SemaphoreHandle_t response = xSemaphoreCreateCounting(1, 0); // Create response semaphore
 
-    struct signal_data data = {};
-    struct task_args args = {request, response, &data};
+    struct signal_data data = {}; // Blank array of signal_data (2 int32_t, input and output)
+    struct task_args args = {request, response, &data}; // Sets up arguments for the thread
     xTaskCreate(calc_task, "test_request", TEST_TASK_STACK_SIZE,
-                (void *)&args, TEST_TASK_PRIORITY, &coop_thread);
+                (void *)&args, TEST_TASK_PRIORITY, &coop_thread); // Start the thread, pass in thread and arguments
     for (int counter = 46; counter < 55; counter++) {
         data.input = counter;
-        BaseType_t result = signal_request_calculate(request, response, &data);
-        TEST_ASSERT_EQUAL_INT(pdTRUE, result);
-        TEST_ASSERT_EQUAL_INT(counter+5, data.output);
+        BaseType_t result = signal_request_calculate(request, response, &data); // Call function
+        TEST_ASSERT_EQUAL_INT(pdTRUE, result); // Check that function returned ok
+        TEST_ASSERT_EQUAL_INT(counter+5, data.output); // Output of functions is (input + 5)
 	}
+    /* Delete all threads and semaphores */
     vTaskDelete(coop_thread);
     vSemaphoreDelete(request);
     vSemaphoreDelete(response);
