@@ -64,11 +64,11 @@ void test_noone_home(void)
     struct signal_data data = {42, 42};
     struct task_args args = {request, response, &data};
     BaseType_t result = signal_request_calculate(request, response, &data);
-    TEST_ASSERT_EQUAL_INT(pdFALSE, result);
-    TEST_ASSERT_EQUAL_INT(1, uxSemaphoreGetCount(request));
-    TEST_ASSERT_EQUAL_INT(0, uxSemaphoreGetCount(response));
-    TEST_ASSERT_EQUAL_INT(42, data.input);
-    TEST_ASSERT_EQUAL_INT(42, data.output);
+    TEST_ASSERT_EQUAL_INT_MESSAGE(pdFALSE, result, "test 1 failed");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(1, uxSemaphoreGetCount(request), "test 2 failed");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(0, uxSemaphoreGetCount(response), "test 3 failed");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(42, data.input, "test 4 failed");
+    TEST_ASSERT_EQUAL_INT_MESSAGE(42, data.output, "test 5 failed");
     vSemaphoreDelete(request);
     vSemaphoreDelete(response);
 }

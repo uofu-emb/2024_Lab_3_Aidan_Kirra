@@ -10,8 +10,8 @@ void signal_handle_calculation(SemaphoreHandle_t request, SemaphoreHandle_t resp
 {
     xSemaphoreTake(request, portMAX_DELAY);
     data->output = data->input + 5;
+    vTaskDelay(10);
     xSemaphoreGive(response);
-    xSemaphoreGive(request);
 }
 
 /**
@@ -23,7 +23,6 @@ BaseType_t signal_request_calculate(SemaphoreHandle_t request, SemaphoreHandle_t
 {
     int32_t input = data->input;
     xSemaphoreGive(request);
-    signal_handle_calculation(request, response, data);
-    xSemaphoreTake(response, portMAX_DELAY);
-    xSemaphoreGive(response);
+    BaseType_t result = xSemaphoreTake(response, 100);
+    return result;
 }
