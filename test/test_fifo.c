@@ -6,9 +6,9 @@
 #include <unity.h>
 #include "fifo.h"
 
-#define TEST_TASK_PRIORITY      ( tskIDLE_PRIORITY + 1UL )
+#define TEST_TASK_PRIORITY (tskIDLE_PRIORITY + 1UL)
 #define TEST_TASK_STACK_SIZE configMINIMAL_STACK_SIZE
-#define TEST_RUNNER_PRIORITY      ( tskIDLE_PRIORITY + 2UL )
+#define TEST_RUNNER_PRIORITY (tskIDLE_PRIORITY + 2UL)
 #define TEST_RUNNER_STACK_SIZE configMINIMAL_STACK_SIZE
 
 #define THREAD_COUNT 4
@@ -30,19 +30,24 @@ QueueHandle_t response;
 
 void handler_task(void *vargs)
 {
-    struct task_args *args = (struct task_args *)vargs;
-    fifo_worker_handler(args->request, args->response, args->id);
+    struct task_args *args = (struct task_args *)vargs;           // Get the arguments of the task
+    fifo_worker_handler(args->request, args->response, args->id); // Call worker handler
 }
 
 void setUp(void)
 {
+    /* Create queues */
     request = xQueueCreate(100, sizeof(struct request_msg));
     response = xQueueCreate(100, sizeof(struct request_msg));
 
-    if (setup_pool) {
-        for (int t = 0; t < THREAD_COUNT; t++) {
-            struct task_args arg = {request, response, t};
-            worker_args[t] = arg;
+    if (setup_pool)
+    {
+        /* Create 4 worker threads */
+        for (int t = 0; t < THREAD_COUNT; t++)
+        {
+            struct task_args arg = {request, response, t}; // Set up arguments for thread
+            worker_args[t] = arg; // Set arguments
+            /* Create task */
             xTaskCreate(handler_task,
                         "worker",
                         TEST_TASK_STACK_SIZE,
@@ -55,8 +60,10 @@ void setUp(void)
 
 void tearDown(void)
 {
-    if (setup_pool) {
-        for (int t = 0; t < THREAD_COUNT; t++) {
+    if (setup_pool)
+    {
+        for (int t = 0; t < THREAD_COUNT; t++)
+        {
             vTaskDelete(worker_threads[t]);
         }
     }
@@ -67,13 +74,15 @@ void tearDown(void)
 void test_full(void)
 {
     printf("Sending messages\n");
-    for (int i = 0; i < 32; i++) {
+    for (int i = 0; i < 32; i++)
+    {
         struct request_msg data = {};
         data.input = i;
         xQueueSendToBack(request, &data, portMAX_DELAY);
     }
 
-    for (int i = 0; i < 32; i++) {
+    for (int i = 0; i < 32; i++)
+    {
         struct request_msg data = {};
         BaseType_t res = xQueueReceive(response, &data, 1000);
         TEST_ASSERT_EQUAL_INT(pdTRUE, res);
@@ -114,10 +123,10 @@ void test_all_alone(void)
     TEST_ASSERT_EQUAL_INT(pdFALSE, xQueueReceive(response, &data, 1000));
 }
 
-
-void runner_thread (__unused void *args)
+void runner_thread(__unused void *args)
 {
-    for (;;) {
+    for (;;)
+    {
         printf("Starting test run\n");
         setup_pool = 1;
         UNITY_BEGIN();
@@ -131,7 +140,7 @@ void runner_thread (__unused void *args)
     }
 }
 
-int main (void)
+int main(void)
 {
     stdio_init_all();
     hard_assert(cyw43_arch_init() == PICO_OK);
@@ -139,5 +148,5 @@ int main (void)
     xTaskCreate(runner_thread, "TestRunner",
                 TEST_RUNNER_STACK_SIZE, NULL, TEST_RUNNER_PRIORITY, NULL);
     vTaskStartScheduler();
-	return 0;
+    return 0;
 }
