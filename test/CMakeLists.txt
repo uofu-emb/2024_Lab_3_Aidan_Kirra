@@ -1,24 +1,35 @@
-add_executable(mytest ../src/signaling.c test_signal.c unity_config.c)
-
-target_link_libraries(mytest PRIVATE
+add_executable(signal_test ../src/signaling.c test_signal.c unity_config.c)
+target_link_libraries(signal_test PRIVATE
   pico_stdlib
   pico_async_context_freertos
   FreeRTOS-Kernel-Heap4
   unity
 )
 
+pico_enable_stdio_uart(signal_test 0)
+pico_enable_stdio_usb(signal_test 1)
+
+add_executable(fifo_test ../src/fifo.c test_fifo.c unity_config.c)
+target_link_libraries(fifo_test PRIVATE
+  pico_stdlib
+  pico_async_context_freertos
+  FreeRTOS-Kernel-Heap4
+  unity
+)
+
+pico_enable_stdio_uart(fifo_test 0)
+pico_enable_stdio_usb(fifo_test 1)
+
 # The CYW43 is the Wifi/Bluetooth module. If the board is set to pico_w, this
 # variable will be set and the wireless libraries added.
 if(PICO_CYW43_SUPPORTED)
-    target_link_libraries(mytest PRIVATE
+    target_link_libraries(signal_test PRIVATE
+        pico_cyw43_arch_none
+    )
+    target_link_libraries(fifo_test PRIVATE
         pico_cyw43_arch_none
     )
 endif()
-
-# Modify the below lines to enable/disable output over UART/USB.
-# These are mutually exclusive, only set one.
-pico_enable_stdio_uart(mytest 0)
-pico_enable_stdio_usb(mytest 1)
 
 # This will speed up the simulation, since data won't be copied from the flash controller.
 # It does make the binary non-persistent on a real microcontroller.
@@ -39,7 +50,8 @@ set(RENODE_FLAGS
 add_test(NAME simulate_mytest COMMAND
     ${RENODE}
      ${RENODE_FLAGS}
-    -e "$ELF=@$<TARGET_FILE:mytest>; $WORKING=@${CMAKE_SOURCE_DIR}; include @${CMAKE_SOURCE_DIR}/test/simulate.resc; start"
+    -e "$ELF=@$<TARGET_FILE:signal_test>; $WORKING=@${CMAKE_SOURCE_DIR}; include @${CMAKE_SOURCE_DIR}/test/simulate.resc; start"
     )
 
-add_custom_target(flash_test picotool load -f $<TARGET_FILE:mytest> DEPENDS mytest)
+    add_custom_target(flash_test_signal picotool load -f $<TARGET_FILE:signal_test> DEPENDS signal_test)
+    add_custom_target(flash_test_fifo picotool load -f $<TARGET_FILE:fifo_test> DEPENDS fifo_test)
